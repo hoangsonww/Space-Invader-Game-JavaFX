@@ -30,6 +30,10 @@ import java.util.List;
 import java.util.Random;
 import java.util.Objects;
 
+import javafx.scene.media.Media;
+import javafx.scene.media.MediaPlayer;
+import java.net.URL;
+
 /** Main game class for the Space Shooter game. */
 public class SpaceShooter extends Application {
 
@@ -37,7 +41,7 @@ public class SpaceShooter extends Application {
   public static final int WIDTH = 350;
 
   /** Height of the game window. */
-  public static final int HEIGHT = 800;
+  public static final int HEIGHT = 850;
 
   /** Number of lives the player starts with. */
   public static int numLives = 3;
@@ -297,6 +301,11 @@ public class SpaceShooter extends Application {
 
   /** Shows the losing screen when the player loses all lives. */
   private void showLosingScreen() {
+    // End of music background before showing losing screen.
+    if (menuMusicPlayer != null) {
+      menuMusicPlayer.stop();
+    }
+
     Pane losingPane = new Pane();
     losingPane.setStyle("-fx-background-color: black;");
 
@@ -369,6 +378,27 @@ public class SpaceShooter extends Application {
     // Create and set the losing screen scene
     Scene losingScene = new Scene(losingPane, WIDTH, HEIGHT);
     primaryStage.setScene(losingScene);
+
+    // Play the losing sound
+    playLosingSound();
+  }
+  /**
+   * phuong thuc tao am thanh losing game.
+   */
+  private void playLosingSound() {
+    try {
+      // Load the MP3 file as a Media object
+      String soundPath = getClass().getResource("/sounds/gameover.mp3").toString();
+      Media sound = new Media(soundPath);
+
+      // Create a MediaPlayer object for the sound
+      MediaPlayer mediaPlayer = new MediaPlayer(sound);
+
+      // Play the sound
+      mediaPlayer.play();
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
   }
 
   /** Restarts the game when the player chooses to try again. */
@@ -382,6 +412,8 @@ public class SpaceShooter extends Application {
     reset = true;
     gameRunning = true;
     primaryStage.setScene(scene);
+    menuMusicPlayer.play(); // phát lại nhạc nền nếu cần
+
   }
 
   /** Resets the game when the player loses all lives. */
@@ -461,10 +493,12 @@ public class SpaceShooter extends Application {
   }
 
   /**
-   * Creates the main menu for the game.
+   * Creates the main menu and the music backgroung for the game.
    *
    * @return The main menu pane
    */
+  private MediaPlayer menuMusicPlayer;
+
   private Pane createMenu() {
     Pane menuPane = new Pane();
     menuPane.setStyle(
@@ -497,6 +531,15 @@ public class SpaceShooter extends Application {
     buttonsContainer.getChildren().addAll(startButton, instructionsButton, quitButton);
 
     menuPane.getChildren().addAll(welcomeText, buttonsContainer);
+    // music background
+    URL resource = getClass().getResource("/background.mp3");
+    if (resource != null) {
+      Media menuMusic = new Media(resource.toString());
+      menuMusicPlayer = new MediaPlayer(menuMusic);
+      menuMusicPlayer.setCycleCount(MediaPlayer.INDEFINITE); // Lặp vô hạn
+      menuMusicPlayer.setVolume(0.5); // Âm lượng vừa phải
+      menuMusicPlayer.play();
+    }
 
     return menuPane;
   }

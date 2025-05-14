@@ -2,6 +2,12 @@ package com.example.spaceshootergamejavafx;
 
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
+import javax.sound.sampled.*;
+import java.io.File;
+import java.io.IOException;
+import javafx.scene.media.Media;
+import javafx.scene.media.MediaPlayer;
+import java.net.URL;
 
 /** Represents a bullet in the game */
 public class Bullet extends GameObject {
@@ -13,7 +19,7 @@ public class Bullet extends GameObject {
   public static final int HEIGHT = 15;
 
   /** Speed of the bullet */
-  private static final double SPEED = 7;
+  private static final double SPEED = 10;
 
   /** Flag to indicate if the bullet is dead */
   private boolean dead = false;
@@ -26,12 +32,27 @@ public class Bullet extends GameObject {
    */
   public Bullet(double x, double y) {
     super(x, y, WIDTH, HEIGHT);
+    playSound("/sounds/enemyhit.mp3");
   }
 
-  /** Updates the bullet's position */
+  /** Updates the bullet's position  and sounds */
   @Override
   public void update() {
     y -= SPEED;
+  }
+
+  // Phát âm thanh khi bắn
+
+  private void playSound(String resourcePath) {
+    try {
+      // Dùng getResource để lấy đường dẫn đúng từ resources
+      String path = getClass().getResource(resourcePath).toExternalForm();
+      Media sound = new Media(path);
+      MediaPlayer mediaPlayer = new MediaPlayer(sound);
+      mediaPlayer.play();
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
   }
 
   /**

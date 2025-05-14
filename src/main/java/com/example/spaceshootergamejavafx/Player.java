@@ -3,7 +3,9 @@ package com.example.spaceshootergamejavafx;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.Image;
 import javafx.scene.paint.Color;
-
+import javafx.scene.media.Media;
+import javafx.scene.media.MediaPlayer;
+import java.net.URL;
 import java.util.List;
 import java.util.Objects;
 
@@ -52,6 +54,7 @@ public class Player extends GameObject {
     this.overlayImage =
         new Image(Objects.requireNonNull(getClass().getResourceAsStream("/player.png")));
   }
+
 
   /**
    * Returns the width of the player hitbox

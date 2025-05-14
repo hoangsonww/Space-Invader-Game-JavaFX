@@ -10,13 +10,13 @@ import java.util.Objects;
 public class PowerUp extends GameObject {
 
   /** Width of the power-up */
-  public static final int WIDTH = 20; // Hitbox width remains unchanged
+  public static final int WIDTH = 25; // Hitbox width remains unchanged
 
   /** Height of the power-up */
-  public static final int HEIGHT = 20; // Hitbox height remains unchanged
+  public static final int HEIGHT = 25; // Hitbox height remains unchanged
 
   /** Speed of the power-up */
-  private static final double SPEED = 2;
+  private static final double SPEED = 1;
 
   /** Flag to indicate if the power-up is dead */
   private boolean isDead = false;

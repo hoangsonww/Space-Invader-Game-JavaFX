@@ -3,6 +3,13 @@ package com.example.spaceshootergamejavafx;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.Image;
 import javafx.scene.paint.Color;
+import javax.sound.sampled.*;
+import java.io.File;
+import java.io.IOException;
+import javafx.scene.media.Media;
+import javafx.scene.media.MediaPlayer;
+import java.nio.file.Paths;
+
 
 import java.util.List;
 import java.util.Objects;
@@ -59,9 +66,28 @@ public class BossEnemy extends Enemy {
       horizontalSpeed = -horizontalSpeed;
     }
   }
+  /**
+   *  sound boss.
+   */
+  private void playSound(String resourcePath) {
+    try {
+      // Dùng getResource để lấy đường dẫn đúng từ resources
+      String path = getClass().getResource(resourcePath).toExternalForm();
+      Media sound = new Media(path);
+      MediaPlayer mediaPlayer = new MediaPlayer(sound);
+      mediaPlayer.play();
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+  }
+  /**
+   *  Hieu ung cho boss.
+   */
+
 
   /** Damages the boss enemy by reducing its health. */
   public void takeDamage() {
+    playSound("/sounds/explosion.mp3");
     health--;
     if (health <= 0) {
       setDead(true);
