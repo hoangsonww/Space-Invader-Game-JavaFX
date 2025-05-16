@@ -38,10 +38,10 @@ import java.net.URL;
 public class SpaceShooter extends Application {
 
   /** Width of the game window. */
-  public static final int WIDTH = 350;
+  public static final int WIDTH = 500;
 
   /** Height of the game window. */
-  public static final int HEIGHT = 850;
+  public static final int HEIGHT = 900;
 
   /** Number of lives the player starts with. */
   public static int numLives = 3;
@@ -49,17 +49,32 @@ public class SpaceShooter extends Application {
   /** Current score of the player. */
   private int score = 0;
 
+  /** Number of bosses defeated by the player. */
+  private int BossesDefeated = 0;
+
   /** Flag to indicate if a boss enemy exists. */
   private boolean bossExists = false;
 
   /** Flag to indicate if the game should be reset. */
   private boolean reset = false;
 
+  /** Condition to check if the game is end. */
+  private final int MAX_BOSES = 5;
+
+  /** Achievement variable MAX_SCORE. */
+  private int highestScore = 0;
+
   /** Label to display the player's score. */
   private final Label scoreLabel = new Label("Score: " + score);
 
   /** Label to display the player's remaining lives. */
   private final Label lifeLabel = new Label("Lives: " + numLives);
+
+  /** Label to display the number of bosses defeated. */
+  private final Label BossDefeatLable = new Label("Bosses Defeated: " + BossesDefeated + "/" + MAX_BOSES);
+
+  /** Label to display the hightest score. */
+  private final Label HighestScoreLabel = new Label("Highest Score: " + highestScore);
 
   /** List of game objects in the game. */
   private final List<GameObject> gameObjects = new ArrayList<>();
@@ -91,16 +106,12 @@ public class SpaceShooter extends Application {
   /** Background music player for the game. */
   private MediaPlayer menuMusicPlayer;
 
-  /** Condition to check if the game is end. */
-  private int bossesDefeated = 0;
-  private final int MAX_BOSES = 5;
-
   /** background screen. */
   private Image backgroundImage;
   private double backgroundY = 0;
   private final double backgroundSpeed = 2.0;
 
-  /** Main method to launch the game. */
+    /** Main method to launch the game. */
   public static void main(String[] args) {
     launch(args);
   }
@@ -116,29 +127,39 @@ public class SpaceShooter extends Application {
     primaryStage.setScene(scene);
     primaryStage.setTitle("Space Shooter");
     primaryStage.setResizable(false);
-
     primaryStage.getIcons().add(new Image(Objects.requireNonNull(getClass().getResourceAsStream("/player.png"))));
-
 
     Canvas canvas = new Canvas(WIDTH, HEIGHT);
     scoreLabel.setTranslateX(10);
     scoreLabel.setTranslateY(10);
-    scoreLabel.setTextFill(Color.WHITE);
+    scoreLabel.setTextFill(Color.LIGHTSTEELBLUE);
     scoreLabel.setFont(Font.font("Verdana", FontWeight.BOLD, 18));
 
     backgroundImage = new Image(Objects.requireNonNull(getClass().getResourceAsStream("/background.png")));
-    root.getChildren().addAll(canvas, scoreLabel, lifeLabel);
+    root.getChildren().addAll(canvas, scoreLabel, lifeLabel, BossDefeatLable);
 
     lifeLabel.setTranslateX(10);
     lifeLabel.setTranslateY(40);
-    lifeLabel.setTextFill(Color.WHITE);
+    lifeLabel.setTextFill(Color.LIGHTSTEELBLUE);
     lifeLabel.setFont(Font.font("Verdana", FontWeight.BOLD, 18));
 
-    GraphicsContext gc = canvas.getGraphicsContext2D();
-    gameObjects.add(player);
+    BossDefeatLable.setTranslateX(10);
+    BossDefeatLable.setTranslateY(70);
+    BossDefeatLable.setTextFill(Color.LIGHTSTEELBLUE);
+    BossDefeatLable.setFont(Font.font("Verdana", FontWeight.BOLD, 18));
+
+    HighestScoreLabel.setTranslateX(10);
+    HighestScoreLabel.setTranslateY(100);
+    HighestScoreLabel.setTextFill(Color.LIGHTSTEELBLUE);
+    HighestScoreLabel.setFont(Font.font("Verdana", FontWeight.BOLD, 18));
+
+    root.getChildren().add(HighestScoreLabel);
 
     Pane menuPane = createMenu();
     Scene menuScene = new Scene(menuPane, WIDTH, HEIGHT);
+
+    GraphicsContext gc = canvas.getGraphicsContext2D();
+    gameObjects.add(player);
 
     primaryStage.setScene(menuScene);
     primaryStage.setTitle("Space Shooter");
@@ -218,22 +239,6 @@ public class SpaceShooter extends Application {
     primaryStage.show();
   }
 
-  /** Spawns an enemy at a random x-coordinate at the top of the screen. */
-  private void spawnEnemy() {
-    Random random = new Random();
-    int x = random.nextInt(WIDTH - 50) + 25;
-
-    if (score % 200 == 0 && score > 0 && !bossExists) {
-      BossEnemy boss = new BossEnemy(x, -50);
-      gameObjects.add(boss);
-      showTempMessage("A boss is ahead, watch out!", 75, HEIGHT / 2 - 100, 5);
-      bossExists = true; // Ensure we don't spawn multiple bosses
-    } else {
-      Enemy enemy = new Enemy(x, -40);
-      gameObjects.add(enemy);
-    }
-  }
-
   /**
    * Checks for collisions between game objects and updates the score and game state accordingly.
    */
@@ -258,11 +263,11 @@ public class SpaceShooter extends Application {
           bullet.setDead(true);
           if (enemy instanceof BossEnemy) {
             ((BossEnemy) enemy).takeDamage();
-            score += 20;
+            score += 50;
             if(((BossEnemy) enemy).isDead()) {
               bossExists = false;
-              bossesDefeated++;
-              if(bossesDefeated >= MAX_BOSES) {
+              BossesDefeated++;
+              if(BossesDefeated >= MAX_BOSES) {
                  gameRunning = false;
                  showWinningScreen();
                  return;
@@ -273,9 +278,10 @@ public class SpaceShooter extends Application {
             score += 10;
           }
           scoreLabel.setText("Score: " + score);
+          BossDefeatLable.setText("Bosses Defeated: " + BossesDefeated + "/" + MAX_BOSES);
 
           if (score % 100 == 0) {
-            Enemy.SPEED += 0.4;
+            Enemy.SPEED += 0.8;
           }
         }
       }
@@ -290,6 +296,12 @@ public class SpaceShooter extends Application {
         }
       }
     }
+
+      // Compare score with highest score
+      if (score > highestScore) {
+        highestScore = score;
+        HighestScoreLabel.setText("Highest Score: " + highestScore);
+      }
 
     if (score % 100 == 0 && score > 0 && !levelUpShown) {
       showTempMessage("Level Up!", 135, HEIGHT / 2, 2);
@@ -326,6 +338,67 @@ public class SpaceShooter extends Application {
     }
   }
 
+  /** Restarts the game when the player chooses to try again. */
+  private void restartGame() {
+    gameObjects.clear();
+    numLives = 3;
+    score = 0;
+    BossesDefeated = 0;
+    bossExists = false;
+    lifeLabel.setText("Lives: " + numLives);
+    scoreLabel.setText("Score: " + score);
+    BossDefeatLable.setText("Bosses Defeated: " + BossesDefeated);
+    gameObjects.add(player);
+    reset = true;
+    gameRunning = true;
+    primaryStage.setScene(scene);
+    menuMusicPlayer.play();
+  }
+
+  /** Starts the game when the player clicks the start button. */
+  private void startGame() {
+    gameRunning = true;
+    primaryStage.setScene(scene);
+  }
+
+  /** Resets the game when the player loses all lives or kill all bosses. */
+  private void resetGame() {
+    gameRunning = false;
+    showLosingScreen();
+  }
+
+  /** Spawns an enemy at a random x-coordinate at the top of the screen. */
+  private void spawnEnemy() {
+    Random random = new Random();
+    int x = random.nextInt(WIDTH - 50) + 25;
+
+    if (score % 200 == 0 && score > 0 && !bossExists) {
+      BossEnemy boss = new BossEnemy(x, -50);
+      gameObjects.add(boss);
+      showTempMessage("A boss is ahead, watch out!", 200, HEIGHT/2  - 200, 5);
+      bossExists = true; // Ensure we don't spawn multiple bosses
+    } else {
+      Enemy enemy = new Enemy(x, -40);
+      gameObjects.add(enemy);
+    }
+  }
+
+  /** Spawns a power-up at a random x-coordinate at the top of the screen. */
+  private void spawnPowerUp() {
+    Random random = new Random();
+    int x = random.nextInt(WIDTH - PowerUp.WIDTH) + PowerUp.WIDTH / 2;
+    PowerUp powerUp = new PowerUp(x, -PowerUp.HEIGHT / 2);
+    gameObjects.add(powerUp);
+  }
+
+  /** Spawns a boss enemy at the top of the screen. */
+  private void spawnBossEnemy() {
+    if (gameObjects.stream().noneMatch(obj -> obj instanceof BossEnemy)) {
+      BossEnemy bossEnemy = new BossEnemy(WIDTH / 2, -40);
+      gameObjects.add(bossEnemy);
+    }
+  }
+
   /** Create button exit and button try again. */
   private Button exitButton = new Button("Exit Game");
   private Button tryAgainButton = new Button("Try Again");
@@ -349,7 +422,7 @@ public class SpaceShooter extends Application {
                               + "-fx-font-weight: bold; -fx-padding: 10 20; -fx-font-family: 'Verdana';");
               tryAgainButton.setEffect(null);
             });
-    tryAgainButton.setLayoutX(115);
+    tryAgainButton.setLayoutX(180);
     tryAgainButton.setLayoutY(350);
     tryAgainButton.setOnAction(event -> restartGame());
 
@@ -375,7 +448,7 @@ public class SpaceShooter extends Application {
                               + "-fx-font-weight: bold; -fx-padding: 10 20; -fx-font-family: 'Verdana';");
               exitButton.setEffect(null);
             });
-    exitButton.setLayoutX(115);
+    exitButton.setLayoutX(180);
     exitButton.setLayoutY(450);
     exitButton.setOnAction(event -> System.exit(0));
 
@@ -490,27 +563,6 @@ public class SpaceShooter extends Application {
     }
   }
 
-  /** Restarts the game when the player chooses to try again. */
-  private void restartGame() {
-    gameObjects.clear();
-    numLives = 3;
-    score = 0;
-    bossesDefeated = 0;
-    bossExists = false;
-    lifeLabel.setText("Lives: " + numLives);
-    scoreLabel.setText("Score: " + score);
-    gameObjects.add(player);
-    reset = true;
-    gameRunning = true;
-    primaryStage.setScene(scene);
-    menuMusicPlayer.play();
-  }
-
-  /** Resets the game when the player loses all lives or kill all bosses. */
-  private void resetGame() {
-    gameRunning = false;
-    showLosingScreen();
-  }
 
   /**
    * Initializes the event handlers for the game scene.
@@ -566,21 +618,6 @@ public class SpaceShooter extends Application {
         });
   }
 
-  /** Spawns a power-up at a random x-coordinate at the top of the screen. */
-  private void spawnPowerUp() {
-    Random random = new Random();
-    int x = random.nextInt(WIDTH - PowerUp.WIDTH) + PowerUp.WIDTH / 2;
-    PowerUp powerUp = new PowerUp(x, -PowerUp.HEIGHT / 2);
-    gameObjects.add(powerUp);
-  }
-
-  /** Spawns a boss enemy at the top of the screen. */
-  private void spawnBossEnemy() {
-    if (gameObjects.stream().noneMatch(obj -> obj instanceof BossEnemy)) {
-      BossEnemy bossEnemy = new BossEnemy(WIDTH / 2, -40);
-      gameObjects.add(bossEnemy);
-    }
-  }
 
   /**
    * Creates the main menu and the music backgroung for the game.
@@ -590,10 +627,9 @@ public class SpaceShooter extends Application {
 
   private Pane createMenu() {
     Pane menuPane = new Pane();
-    menuPane.setStyle(
-        "-fx-background-color: linear-gradient(to bottom, #1e3c72, #2a5298);"); // Gradient
-    // background
 
+    // Create the menu background
+    menuPane.setStyle("-fx-background-image: url('/menubackground.png'); -fx-background-size: cover; -fx-background-position: center bottom;");
     // Styled title
     Text welcomeText = new Text("Welcome to\nSpace Shooter!");
     welcomeText.setFont(Font.font("Verdana", FontWeight.EXTRA_BOLD, 36)); // Bold and larger font
@@ -620,13 +656,14 @@ public class SpaceShooter extends Application {
     buttonsContainer.getChildren().addAll(startButton, instructionsButton, quitButton);
 
     menuPane.getChildren().addAll(welcomeText, buttonsContainer);
-    // music background
+
+    // Music background
     URL resource = getClass().getResource("/background.mp3");
     if (resource != null) {
       Media menuMusic = new Media(resource.toString());
       menuMusicPlayer = new MediaPlayer(menuMusic);
-      menuMusicPlayer.setCycleCount(MediaPlayer.INDEFINITE); // Lặp vô hạn
-      menuMusicPlayer.setVolume(0.5); // Âm lượng vừa phải
+      menuMusicPlayer.setCycleCount(MediaPlayer.INDEFINITE);
+      menuMusicPlayer.setVolume(0.5);
       menuMusicPlayer.play();
     }
 
@@ -723,9 +760,4 @@ public class SpaceShooter extends Application {
     pause.play();
   }
 
-  /** Starts the game when the player clicks the start button. */
-  private void startGame() {
-    gameRunning = true;
-    primaryStage.setScene(scene);
-  }
 }
