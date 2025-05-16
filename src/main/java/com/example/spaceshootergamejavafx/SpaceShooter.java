@@ -79,7 +79,7 @@ public class SpaceShooter extends Application {
   /** Flag to indicate if the level up message has been displayed. */
   private boolean levelUpMessageDisplayed = false;
 
-  /** Flag to indicate if the level up message has been shown. */
+  /** Flag to indicate if the level up message has beenbos shown. */
   private boolean levelUpShown = false;
 
   /** Primary stage for the game. */
@@ -87,6 +87,18 @@ public class SpaceShooter extends Application {
 
   /** Flag to indicate if the game is running. */
   private boolean gameRunning = false;
+
+  /** Background music player for the game. */
+  private MediaPlayer menuMusicPlayer;
+
+  /** Condition to check if the game is end. */
+  private int bossesDefeated = 0;
+  private final int MAX_BOSES = 5;
+
+  /** background screen. */
+  private Image backgroundImage;
+  private double backgroundY = 0;
+  private final double backgroundSpeed = 2.0;
 
   /** Main method to launch the game. */
   public static void main(String[] args) {
@@ -105,9 +117,8 @@ public class SpaceShooter extends Application {
     primaryStage.setTitle("Space Shooter");
     primaryStage.setResizable(false);
 
-    primaryStage
-        .getIcons()
-        .add(new Image(Objects.requireNonNull(getClass().getResourceAsStream("/player.png"))));
+    primaryStage.getIcons().add(new Image(Objects.requireNonNull(getClass().getResourceAsStream("/player.png"))));
+
 
     Canvas canvas = new Canvas(WIDTH, HEIGHT);
     scoreLabel.setTranslateX(10);
@@ -115,7 +126,7 @@ public class SpaceShooter extends Application {
     scoreLabel.setTextFill(Color.WHITE);
     scoreLabel.setFont(Font.font("Verdana", FontWeight.BOLD, 18));
 
-    root.setStyle("-fx-background-color: black;");
+    backgroundImage = new Image(Objects.requireNonNull(getClass().getResourceAsStream("/background.png")));
     root.getChildren().addAll(canvas, scoreLabel, lifeLabel);
 
     lifeLabel.setTranslateX(10);
@@ -149,8 +160,15 @@ public class SpaceShooter extends Application {
               reset = false;
             }
 
-            gc.setFill(Color.BLACK);
-            gc.clearRect(0, 0, WIDTH, HEIGHT);
+            // Update background location
+            backgroundY += backgroundSpeed;
+            if (backgroundY >= HEIGHT) {
+              backgroundY = 0;
+            }
+
+            // Draw two images in series to create a continuous scrolling effect
+            gc.drawImage(backgroundImage, 0, backgroundY, WIDTH, HEIGHT);
+            gc.drawImage(backgroundImage, 0, backgroundY - HEIGHT, WIDTH, HEIGHT);
 
             if (now - lastEnemySpawned > 1_000_000_000) {
               spawnEnemy();
@@ -162,7 +180,7 @@ public class SpaceShooter extends Application {
               lastPowerUpSpawned = now;
             }
 
-            if (score >= 200 && score % 200 == 0) {
+            if (score >= 100 && score % 100 == 0) {
               boolean bossExists = false;
               for (GameObject obj : gameObjects) {
                 if (obj instanceof BossEnemy) {
@@ -241,6 +259,15 @@ public class SpaceShooter extends Application {
           if (enemy instanceof BossEnemy) {
             ((BossEnemy) enemy).takeDamage();
             score += 20;
+            if(((BossEnemy) enemy).isDead()) {
+              bossExists = false;
+              bossesDefeated++;
+              if(bossesDefeated >= MAX_BOSES) {
+                 gameRunning = false;
+                 showWinningScreen();
+                 return;
+              }
+            }
           } else {
             enemy.setDead(true);
             score += 10;
@@ -299,6 +326,62 @@ public class SpaceShooter extends Application {
     }
   }
 
+  /** Create button exit and button try again. */
+  private Button exitButton = new Button("Exit Game");
+  private Button tryAgainButton = new Button("Try Again");
+
+  private Button  TryButton() {
+    // Try Again Button
+    tryAgainButton.setStyle(
+            "-fx-background-color: #444; -fx-text-fill: white; -fx-font-size: 18; "
+                    + "-fx-font-weight: bold; -fx-padding: 10 20; -fx-font-family: 'Verdana';");
+    tryAgainButton.setOnMouseEntered(
+            event -> {
+              tryAgainButton.setStyle(
+                      "-fx-background-color: white; -fx-text-fill: black; -fx-font-size: 18; "
+                              + "-fx-font-weight: bold; -fx-padding: 10 20; -fx-font-family: 'Verdana';");
+              tryAgainButton.setEffect(new Glow(0.5));
+            });
+    tryAgainButton.setOnMouseExited(
+            event -> {
+              tryAgainButton.setStyle(
+                      "-fx-background-color: #444; -fx-text-fill: white; -fx-font-size: 18; "
+                              + "-fx-font-weight: bold; -fx-padding: 10 20; -fx-font-family: 'Verdana';");
+              tryAgainButton.setEffect(null);
+            });
+    tryAgainButton.setLayoutX(115);
+    tryAgainButton.setLayoutY(350);
+    tryAgainButton.setOnAction(event -> restartGame());
+
+    return tryAgainButton;
+  }
+
+  private Button  ExitButton() {
+      // Exit Button
+    exitButton.setStyle(
+            "-fx-background-color: #d9534f; -fx-text-fill: white; -fx-font-size: 18; "
+                    + "-fx-font-weight: bold; -fx-padding: 10 20; -fx-font-family: 'Verdana';");
+    exitButton.setOnMouseEntered(
+            event -> {
+              exitButton.setStyle(
+                      "-fx-background-color: white; -fx-text-fill: red; -fx-font-size: 18; "
+                              + "-fx-font-weight: bold; -fx-padding: 10 20; -fx-font-family: 'Verdana';");
+              exitButton.setEffect(new Glow(0.5));
+            });
+    exitButton.setOnMouseExited(
+            event -> {
+              exitButton.setStyle(
+                      "-fx-background-color: #d9534f; -fx-text-fill: white; -fx-font-size: 18; "
+                              + "-fx-font-weight: bold; -fx-padding: 10 20; -fx-font-family: 'Verdana';");
+              exitButton.setEffect(null);
+            });
+    exitButton.setLayoutX(115);
+    exitButton.setLayoutY(450);
+    exitButton.setOnAction(event -> System.exit(0));
+
+    return exitButton;
+  }
+
   /** Shows the losing screen when the player loses all lives. */
   private void showLosingScreen() {
     // End of music background before showing losing screen.
@@ -320,68 +403,21 @@ public class SpaceShooter extends Application {
     if (score < 0) {
       score = 0;
     }
-
     Text scoreText = new Text("Your Score: " + score);
     scoreText.setFont(Font.font("Verdana", FontWeight.BOLD, 24));
     scoreText.setFill(Color.WHITE);
     scoreText.setX((WIDTH - scoreText.getLayoutBounds().getWidth()) / 2);
     scoreText.setY(250);
 
-    // Try Again Button
-    Button tryAgainButton = new Button("Try Again");
-    tryAgainButton.setStyle(
-        "-fx-background-color: #444; -fx-text-fill: white; -fx-font-size: 18; "
-            + "-fx-font-weight: bold; -fx-padding: 10 20; -fx-font-family: 'Verdana';");
-    tryAgainButton.setOnMouseEntered(
-        event -> {
-          tryAgainButton.setStyle(
-              "-fx-background-color: white; -fx-text-fill: black; -fx-font-size: 18; "
-                  + "-fx-font-weight: bold; -fx-padding: 10 20; -fx-font-family: 'Verdana';");
-          tryAgainButton.setEffect(new Glow(0.5));
-        });
-    tryAgainButton.setOnMouseExited(
-        event -> {
-          tryAgainButton.setStyle(
-              "-fx-background-color: #444; -fx-text-fill: white; -fx-font-size: 18; "
-                  + "-fx-font-weight: bold; -fx-padding: 10 20; -fx-font-family: 'Verdana';");
-          tryAgainButton.setEffect(null);
-        });
-    tryAgainButton.setLayoutX(115);
-    tryAgainButton.setLayoutY(350);
-    tryAgainButton.setOnAction(event -> restartGame());
-
-    // Exit Button
-    Button exitButton = new Button("Exit Game");
-    exitButton.setStyle(
-        "-fx-background-color: #d9534f; -fx-text-fill: white; -fx-font-size: 18; "
-            + "-fx-font-weight: bold; -fx-padding: 10 20; -fx-font-family: 'Verdana';");
-    exitButton.setOnMouseEntered(
-        event -> {
-          exitButton.setStyle(
-              "-fx-background-color: white; -fx-text-fill: red; -fx-font-size: 18; "
-                  + "-fx-font-weight: bold; -fx-padding: 10 20; -fx-font-family: 'Verdana';");
-          exitButton.setEffect(new Glow(0.5));
-        });
-    exitButton.setOnMouseExited(
-        event -> {
-          exitButton.setStyle(
-              "-fx-background-color: #d9534f; -fx-text-fill: white; -fx-font-size: 18; "
-                  + "-fx-font-weight: bold; -fx-padding: 10 20; -fx-font-family: 'Verdana';");
-          exitButton.setEffect(null);
-        });
-    exitButton.setLayoutX(115);
-    exitButton.setLayoutY(450);
-    exitButton.setOnAction(event -> System.exit(0));
-
-    losingPane.getChildren().addAll(gameOverText, scoreText, tryAgainButton, exitButton);
-
     // Create and set the losing screen scene
     Scene losingScene = new Scene(losingPane, WIDTH, HEIGHT);
     primaryStage.setScene(losingScene);
+    losingPane.getChildren().addAll(gameOverText, scoreText, ExitButton(), TryButton());
 
     // Play the losing sound
     playLosingSound();
   }
+
   /**
    * phuong thuc tao am thanh losing game.
    */
@@ -401,22 +437,76 @@ public class SpaceShooter extends Application {
     }
   }
 
+  /** Method to show the winning screen and winning sound. */
+  private void showWinningScreen() {
+    // Stop music background if it's playing
+    if (menuMusicPlayer != null) {
+      menuMusicPlayer.stop();
+    }
+
+    // Create a pane for the winning screen
+    Pane winningPane = new Pane();
+    winningPane.setStyle("-fx-background-color: black;");
+
+    // Win game Text
+    Text wingameText = new Text("You Win!");
+    wingameText.setFont(Font.font("Verdana", FontWeight.BOLD, 40));
+    wingameText.setFill(Color.GREEN);
+    wingameText.setX((WIDTH - wingameText.getLayoutBounds().getWidth()) / 2);
+    wingameText.setY(150);
+
+    // Score Display
+    if (score < 0) {
+      score = 0;
+    }
+    Text scoreText = new Text("Your Score: " + score);
+    scoreText.setFont(Font.font("Verdana", FontWeight.BOLD, 24));
+    scoreText.setFill(Color.WHITE);
+    scoreText.setX((WIDTH - scoreText.getLayoutBounds().getWidth()) / 2);
+    scoreText.setY(250);
+
+    // Create and set the losing screen scene
+    Scene winningsence = new Scene(winningPane, WIDTH, HEIGHT);
+    primaryStage.setScene(winningsence);
+    winningPane.getChildren().addAll(wingameText, scoreText, ExitButton(), TryButton());
+
+    playWinningSound();
+  }
+
+  /** Method to creat the winning sound. */
+  private void playWinningSound() {
+    try {
+      // Load the MP3 file as a Media object
+      String soundPath = getClass().getResource("/sounds/wingame.mp3").toString();
+      Media sound = new Media(soundPath);
+
+      // Create a MediaPlayer object for the sound
+      MediaPlayer mediaPlayer = new MediaPlayer(sound);
+
+      // Play the sound
+      mediaPlayer.play();
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+  }
+
   /** Restarts the game when the player chooses to try again. */
   private void restartGame() {
     gameObjects.clear();
     numLives = 3;
     score = 0;
+    bossesDefeated = 0;
+    bossExists = false;
     lifeLabel.setText("Lives: " + numLives);
     scoreLabel.setText("Score: " + score);
     gameObjects.add(player);
     reset = true;
     gameRunning = true;
     primaryStage.setScene(scene);
-    menuMusicPlayer.play(); // phát lại nhạc nền nếu cần
-
+    menuMusicPlayer.play();
   }
 
-  /** Resets the game when the player loses all lives. */
+  /** Resets the game when the player loses all lives or kill all bosses. */
   private void resetGame() {
     gameRunning = false;
     showLosingScreen();
@@ -497,7 +587,6 @@ public class SpaceShooter extends Application {
    *
    * @return The main menu pane
    */
-  private MediaPlayer menuMusicPlayer;
 
   private Pane createMenu() {
     Pane menuPane = new Pane();

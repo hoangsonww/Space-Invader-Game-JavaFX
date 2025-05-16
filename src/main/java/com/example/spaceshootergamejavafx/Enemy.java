@@ -89,6 +89,7 @@ public class Enemy extends GameObject {
     this.dead = dead;
   }
 
+
   /**
    * Returns whether the enemy is dead.
    *

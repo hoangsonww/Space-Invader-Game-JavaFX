@@ -29,6 +29,10 @@ public class BossEnemy extends Enemy {
   /** Number of hits the boss can take before dying. */
   private int numHits = 5;
 
+  /** Condition to check if the game is end. */
+  private int bosesDefeated = 0;
+  private final int MAX_BOSES = 5;
+
   /** Image for the boss enemy. */
   private final Image bossImage;
 
@@ -84,7 +88,6 @@ public class BossEnemy extends Enemy {
    *  Hieu ung cho boss.
    */
 
-
   /** Damages the boss enemy by reducing its health. */
   public void takeDamage() {
     playSound("/sounds/explosion.mp3");
@@ -134,11 +137,4 @@ public class BossEnemy extends Enemy {
     }
   }
 
-  /** Damages the boss enemy by reducing its health. */
-  public void hit() {
-    health--;
-    if (health <= 0) {
-      setDead(true);
-    }
-  }
 }
