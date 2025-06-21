@@ -84,6 +84,9 @@ public class SpaceShooter extends Application {
   /** Flag to indicate if the game is running. */
   private boolean gameRunning = false;
 
+  /** Random number generator reused throughout the game. */
+  private final Random random = new Random();
+
   /** Main method to launch the game. */
   public static void main(String[] args) {
     launch(args);
@@ -198,7 +201,6 @@ public class SpaceShooter extends Application {
 
   /** Spawns an enemy at a random x-coordinate at the top of the screen. */
   private void spawnEnemy() {
-    Random random = new Random();
     int x = random.nextInt(WIDTH - 50) + 25;
 
     if (score % 200 == 0 && score > 0 && !bossExists) {
@@ -446,7 +448,6 @@ public class SpaceShooter extends Application {
 
   /** Spawns a power-up at a random x-coordinate at the top of the screen. */
   private void spawnPowerUp() {
-    Random random = new Random();
     int x = random.nextInt(WIDTH - PowerUp.WIDTH) + PowerUp.WIDTH / 2;
     PowerUp powerUp = new PowerUp(x, -PowerUp.HEIGHT / 2);
     gameObjects.add(powerUp);
